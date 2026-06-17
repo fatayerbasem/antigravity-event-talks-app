@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Track Google Cloud BigQuery release notes and instantly share updates to X (formerly Twitter) with a premium developer dashboard.">
+    <title>BigQuery Release Board & Share</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Premium Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header Section -->
+        <header class="app-header">
+            <div class="logo-area">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="logo-text">
+                    <h1>BigQuery <span>Release Board</span></h1>
+                    <p class="subtitle">Real-time Google Cloud Feed & X-Share</p>
+                </div>
+            </div>
+            
+            <div class="header-actions">
+                <div class="stats-badge" id="stats-badge">
+                    <span class="pulse-dot"></span>
+                    <span id="update-count">0 updates loaded</span>
+                </div>
+                <button id="btn-refresh" class="btn btn-primary" title="Refresh release notes">
+                    <i class="fas fa-sync-alt" id="refresh-icon"></i>
+                    <span>Sync Notes</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Dashboard Layout -->
+        <main class="dashboard-layout">
+            <!-- Left Panel: Notes Feed & Filters -->
+            <section class="feed-panel">
+                <!-- Search and Filters Bar -->
+                <div class="control-bar">
+                    <div class="search-box">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" id="search-input" placeholder="Search releases (e.g. Gemini, external tables, SQL)..." aria-label="Search release notes">
+                        <button id="btn-clear-search" class="clear-search-btn" style="display: none;" title="Clear search">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="filter-chips" id="filter-chips" role="radiogroup" aria-label="Filter updates by type">
+                        <button class="chip active" data-filter="all" role="radio" aria-checked="true">All</button>
+                        <button class="chip" data-filter="Feature" role="radio" aria-checked="false">Features</button>
+                        <button class="chip" data-filter="Announcement" role="radio" aria-checked="false">Announcements</button>
+                        <button class="chip" data-filter="Breaking" role="radio" aria-checked="false">Breaking</button>
+                        <button class="chip" data-filter="Change" role="radio" aria-checked="false">Changes</button>
+                        <button class="chip" data-filter="Deprecation" role="radio" aria-checked="false">Deprecations</button>
+                    </div>
+                </div>
+
+                <!-- Feed Container -->
+                <div class="feed-container" id="feed-container">
+                    <!-- Loading State -->
+                    <div class="loading-state" id="loading-state">
+                        <div class="double-bounce-spinner">
+                            <div class="double-bounce1"></div>
+                            <div class="double-bounce2"></div>
+                        </div>
+                        <p>Fetching BigQuery release notes...</p>
+                    </div>
+
+                    <!-- Error State -->
+                    <div class="error-state" id="error-state" style="display: none;">
+                        <i class="fas fa-exclamation-triangle error-icon"></i>
+                        <h3>Sync Failed</h3>
+                        <p id="error-message">Unable to load feed. Check your internet connection.</p>
+                        <button id="btn-retry" class="btn btn-secondary">Retry Connection</button>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div class="empty-state" id="empty-state" style="display: none;">
+                        <i class="fas fa-search-minus empty-icon"></i>
+                        <h3>No Results Found</h3>
+                        <p>No release notes matched your search criteria. Try a different query or reset filters.</p>
+                        <button id="btn-reset-filters" class="btn btn-secondary">Reset Search & Filters</button>
+                    </div>
+
+                    <!-- Feed List -->
+                    <div class="notes-list" id="notes-list"></div>
+                </div>
+            </section>
+
+            <!-- Right Panel: Sticky Tweet Composer -->
+            <aside class="composer-panel" aria-label="X Tweet Composer">
+                <div class="sticky-panel-container">
+                    <!-- Composer Header -->
+                    <div class="panel-header">
+                        <h2><i class="fab fa-x-twitter"></i> Tweet Composer</h2>
+                        <span class="panel-tag">Preview & Post</span>
+                    </div>
+
+                    <!-- No Selection State -->
+                    <div class="composer-placeholder" id="composer-placeholder">
+                        <div class="placeholder-icon">
+                            <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 10.742h.008v.008h-.008v-.008zm.37 3.078a3.75 3.75 0 01-2.096-1.944m12.441-3.628v8.25a3 3 0 01-3 3H5.25a3 3 0 01-3-3V6.75a3 3 0 013-3h8.25M12 3v6.75m0 0l-3-3m3 3l3-3" />
+                            </svg>
+                        </div>
+                        <h3>No Update Selected</h3>
+                        <p>Select any specific update from the feed stream on the left to preview, edit, and share it on X.</p>
+                    </div>
+
+                    <!-- Composer Form State -->
+                    <div class="composer-form" id="composer-form" style="display: none;">
+                        <div class="selected-details">
+                            <div class="detail-row">
+                                <span class="detail-label">Source Date</span>
+                                <span id="composer-date" class="detail-value">June 16, 2026</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Update Type</span>
+                                <span id="composer-type-badge" class="type-badge">Feature</span>
+                            </div>
+                        </div>
+
+                        <!-- Original Excerpt Preview -->
+                        <div class="source-excerpt">
+                            <label>Original Excerpt</label>
+                            <div class="excerpt-box" id="composer-excerpt"></div>
+                        </div>
+
+                        <!-- Tweet Editor -->
+                        <div class="editor-area">
+                            <label for="tweet-textarea">Compose Your Post</label>
+                            <div class="textarea-wrapper">
+                                <textarea id="tweet-textarea" rows="7" placeholder="What's happening?"></textarea>
+                            </div>
+                            
+                            <div class="composer-footer">
+                                <!-- Hashtag Shortcuts -->
+                                <div class="hashtag-helper">
+                                    <span class="helper-title">Add tags:</span>
+                                    <div class="hashtag-chips">
+                                        <button class="tag-chip active" data-tag="#BigQuery">#BigQuery</button>
+                                        <button class="tag-chip active" data-tag="#GoogleCloud">#GCP</button>
+                                        <button class="tag-chip" data-tag="#DataEngineering">#DataEng</button>
+                                        <button class="tag-chip" data-tag="#GenerativeAI">#GenAI</button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Character Counter -->
+                                <div class="character-counter-wrapper">
+                                    <svg class="progress-ring" width="36" height="36">
+                                        <circle class="progress-ring__circle-bg" stroke="#1e293b" stroke-width="3" fill="transparent" r="14" cx="18" cy="18"/>
+                                        <circle class="progress-ring__circle" id="char-progress-circle" stroke="#38bdf8" stroke-width="3" fill="transparent" r="14" cx="18" cy="18"/>
+                                    </svg>
+                                    <span id="char-count" class="char-count">280</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Composer Actions -->
+                        <div class="composer-actions">
+                            <button id="btn-copy" class="btn btn-outline" title="Copy text to clipboard">
+                                <i class="far fa-copy"></i>
+                                <span>Copy Text</span>
+                            </button>
+                            <button id="btn-tweet" class="btn btn-accent" title="Post on X">
+                                <i class="fab fa-x-twitter"></i>
+                                <span>Post to X</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </main>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <i class="fas fa-check-circle toast-icon"></i>
+        <span id="toast-message">Copied to clipboard!</span>
+    </div>
+
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
