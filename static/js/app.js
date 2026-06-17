@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const elements = {
         btnRefresh: document.getElementById('btn-refresh'),
         refreshIcon: document.getElementById('refresh-icon'),
+        btnExportCSV: document.getElementById('btn-export-csv'),
         updateCount: document.getElementById('update-count'),
         statsBadge: document.getElementById('stats-badge'),
         
@@ -199,7 +200,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     <span class="card-date">
                         <i class="far fa-calendar-alt"></i> ${update.date}
                     </span>
-                    <span class="type-badge" data-type="${update.type}">${update.type}</span>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <button class="btn-card-copy" title="Copy raw text to clipboard" aria-label="Copy text">
+                            <i class="far fa-copy"></i>
+                        </button>
+                        <span class="type-badge" data-type="${update.type}">${update.type}</span>
+                    </div>
                 </div>
                 <div class="card-content-wrapper">
                     ${update.content_body_html}
@@ -208,6 +214,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     <i class="far fa-edit"></i> Select to Tweet
                 </div>
             `;
+
+            // Card Copy Button Event Listener
+            const btnCopyCard = card.querySelector('.btn-card-copy');
+            btnCopyCard.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent card selection from firing
+                navigator.clipboard.writeText(update.raw_text)
+                    .then(() => {
+                        showToast("Release text copied to clipboard!");
+                    })
+                    .catch(err => {
+                        console.error("Card copy failed:", err);
+                        showToast("Failed to copy card text.");
+                    });
+            });
 
             // Event Listeners for Selection
             card.addEventListener('click', () => selectUpdate(update));
@@ -424,12 +444,66 @@ document.addEventListener('DOMContentLoaded', () => {
         window.open(shareUrl, '_blank', 'noopener,noreferrer');
     }
 
+    // --- Export current notes to CSV ---
+    function exportToCSV() {
+        const dataToExport = state.filteredUpdates;
+        if (dataToExport.length === 0) {
+            showToast("No release notes to export.");
+            return;
+        }
+
+        // Helper to escape CSV values properly
+        const escapeCSVValue = (val) => {
+            if (val === null || val === undefined) return '';
+            let formatted = val.toString().replace(/"/g, '""');
+            if (formatted.includes(',') || formatted.includes('\n') || formatted.includes('"')) {
+                formatted = `"${formatted}"`;
+            }
+            return formatted;
+        };
+
+        const headers = ["ID", "Date", "ISO Date", "Type", "Raw Text"];
+        const rows = dataToExport.map(update => [
+            update.id,
+            update.date,
+            update.iso_date,
+            update.type,
+            update.raw_text
+        ]);
+
+        const csvContent = [
+            headers.map(escapeCSVValue).join(','),
+            ...rows.map(row => row.map(escapeCSVValue).join(','))
+        ].join('\n');
+
+        // Create Blob and download link
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        
+        // Dynamic file name based on current date & filters
+        const filterStr = state.activeFilter !== 'all' ? `_${state.activeFilter.toLowerCase()}` : '';
+        const searchStr = state.searchTerm ? `_search` : '';
+        const dateStr = new Date().toISOString().slice(0, 10);
+        link.setAttribute('download', `bigquery_release_notes_${dateStr}${filterStr}${searchStr}.csv`);
+        
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        showToast("CSV export started!");
+    }
+
     // --- Event Listeners Setup ---
     
     // Sync Button Click
     elements.btnRefresh.addEventListener('click', () => {
         fetchReleaseNotes(true);
     });
+
+    // Export CSV Click
+    elements.btnExportCSV.addEventListener('click', exportToCSV);
 
     // Retry Button Click
     elements.btnRetry.addEventListener('click', () => {

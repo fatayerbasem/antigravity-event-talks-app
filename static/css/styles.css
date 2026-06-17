@@ -530,6 +530,30 @@ a:hover {
     font-size: 0.75rem;
 }
 
+/* Card Actions Copy Button */
+.btn-card-copy {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.85rem;
+    padding: 0.25rem;
+    border-radius: var(--radius-sm);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: color var(--transition-fast), background-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.btn-card-copy:hover {
+    color: var(--color-accent);
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+.btn-card-copy:active {
+    transform: scale(0.9);
+}
+
 /* Type Badges */
 .type-badge {
     display: inline-flex;
