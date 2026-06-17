@@ -35,6 +35,9 @@
                     <span class="pulse-dot"></span>
                     <span id="update-count">0 updates loaded</span>
                 </div>
+                <button id="btn-theme-toggle" class="btn btn-outline btn-icon" title="Toggle color scheme" aria-label="Toggle light/dark theme">
+                    <i class="fas fa-moon" id="theme-icon"></i>
+                </button>
                 <button id="btn-export-csv" class="btn btn-outline" title="Export current releases to CSV">
                     <i class="fas fa-file-csv"></i>
                     <span>Export CSV</span>
@@ -163,7 +166,7 @@
                                 <!-- Character Counter -->
                                 <div class="character-counter-wrapper">
                                     <svg class="progress-ring" width="36" height="36">
-                                        <circle class="progress-ring__circle-bg" stroke="#1e293b" stroke-width="3" fill="transparent" r="14" cx="18" cy="18"/>
+                                        <circle class="progress-ring__circle-bg" stroke-width="3" fill="transparent" r="14" cx="18" cy="18"/>
                                         <circle class="progress-ring__circle" id="char-progress-circle" stroke="#38bdf8" stroke-width="3" fill="transparent" r="14" cx="18" cy="18"/>
                                     </svg>
                                     <span id="char-count" class="char-count">280</span>

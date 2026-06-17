@@ -24,6 +24,8 @@ document.addEventListener('DOMContentLoaded', () => {
         btnRefresh: document.getElementById('btn-refresh'),
         refreshIcon: document.getElementById('refresh-icon'),
         btnExportCSV: document.getElementById('btn-export-csv'),
+        btnThemeToggle: document.getElementById('btn-theme-toggle'),
+        themeIcon: document.getElementById('theme-icon'),
         updateCount: document.getElementById('update-count'),
         statsBadge: document.getElementById('stats-badge'),
         
@@ -495,6 +497,32 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast("CSV export started!");
     }
 
+    // --- Theme Switcher Logic ---
+    function initTheme() {
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        setTheme(savedTheme);
+    }
+
+    function setTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+        
+        // Update toggle icon classes
+        if (theme === 'light') {
+            elements.themeIcon.className = 'fas fa-sun';
+            elements.btnThemeToggle.title = 'Switch to Dark Mode';
+        } else {
+            elements.themeIcon.className = 'fas fa-moon';
+            elements.btnThemeToggle.title = 'Switch to Light Mode';
+        }
+    }
+
+    function toggleTheme() {
+        const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        setTheme(newTheme);
+    }
+
     // --- Event Listeners Setup ---
     
     // Sync Button Click
@@ -504,6 +532,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Export CSV Click
     elements.btnExportCSV.addEventListener('click', exportToCSV);
+
+    // Theme Toggle Click
+    elements.btnThemeToggle.addEventListener('click', toggleTheme);
 
     // Retry Button Click
     elements.btnRetry.addEventListener('click', () => {
@@ -561,5 +592,6 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.btnTweet.addEventListener('click', shareOnTwitter);
 
     // --- Initial Load ---
+    initTheme();
     fetchReleaseNotes(false);
 });
