@@ -41,6 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
         notesList: document.getElementById('notes-list'),
         btnRetry: document.getElementById('btn-retry'),
         btnResetFilters: document.getElementById('btn-reset-filters'),
+        composerPanel: document.querySelector('.composer-panel'),
         
         composerPlaceholder: document.getElementById('composer-placeholder'),
         composerForm: document.getElementById('composer-form'),
@@ -258,6 +259,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (state.selectedUpdate) {
             const selectedCard = document.getElementById(`card-${update.id}`);
             if (selectedCard) selectedCard.classList.add('selected');
+            
+            // Auto-scroll on mobile viewports
+            if (window.innerWidth < 1024 && elements.composerPanel) {
+                elements.composerPanel.scrollIntoView({ behavior: 'smooth' });
+            }
         }
 
         updateComposerUI();
